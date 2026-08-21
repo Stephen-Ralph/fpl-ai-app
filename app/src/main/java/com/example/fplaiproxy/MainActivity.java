@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
 
         configureWebView();
 
-        findViewById<Button>(R.id.saveKey).setOnClickListener(v -> {
+        findViewById(R.id.saveKey).setOnClickListener(v -> {
             try {
                 secureKeyStore.save(apiKey.getText().toString());
                 apiKey.setText("");
@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        findViewById<Button>(R.id.deleteKey).setOnClickListener(v -> {
+        findViewById(R.id.deleteKey).setOnClickListener(v -> {
             try {
                 if (proxy != null) proxy.stop();
                 secureKeyStore.delete();
