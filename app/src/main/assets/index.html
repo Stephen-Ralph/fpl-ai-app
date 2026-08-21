@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020"><title>FPL AI Manager — Current Demo</title>
+<style>
+:root{--bg:#08101d;--panel:#111a2d;--panel2:#17233b;--line:#2a3651;--text:#f8fafc;--muted:#a6b1c8;--green:#78e4a9}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#07101d,#0b1323);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:760px;margin:auto;padding:18px 14px 40px}header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+h1{margin:4px 0 8px;font-size:30px;line-height:1.02;letter-spacing:-.04em}h2{margin:5px 0 10px}.eyebrow{font-size:10px;letter-spacing:.14em;color:var(--green);font-weight:900}
+p{color:var(--muted);line-height:1.45}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--green);font-size:11px;white-space:nowrap}
+.card{background:rgba(17,26,45,.97);border:1px solid var(--line);border-radius:18px;padding:16px;margin:11px 0}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tab{border:0;border-radius:12px;padding:12px;background:#0c1424;color:var(--muted);font-weight:800}.tab.active{background:var(--panel2);color:white}
+label{font-size:12px;font-weight:800;display:block;margin:14px 0 6px}input,select{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#0b1323;color:white}
+.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.segmented button{padding:10px 4px;border-radius:10px;border:1px solid var(--line);background:#0b1323;color:var(--muted)}.segmented button.on{background:#203050;color:white;border-color:#4774af}
+.primary{width:100%;border:0;border-radius:12px;padding:14px;margin-top:16px;background:var(--green);color:#042216;font-weight:900}.hidden{display:none!important}
+.notice{background:#16283a;border:1px solid #315370;border-radius:12px;padding:10px;font-size:11px;color:#c7d5e7;margin:12px 0}
+.rec{background:#143228;border:1px solid #2e654f;border-radius:14px;padding:14px;margin-top:14px}.rec strong{color:var(--green);font-size:18px}
+.squad{border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:11px;background:#0e1728}.squad.recommended{border-color:var(--green)}.squadtop{display:flex;justify-content:space-between;gap:8px}
+.badge{font-size:10px;padding:5px 7px;background:#22324f;border-radius:999px;height:max-content}.badge.good{background:#153b2b;color:#9df0bd}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.metric{background:#111c31;padding:8px;border-radius:9px}.metric span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}.metric b{font-size:13px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:4px 9px}.player{font-size:11px;padding:4px 0;border-bottom:1px solid rgba(42,54,81,.45);display:flex;justify-content:space-between}
+.decisionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.tile{background:#10192b;border:1px solid var(--line);border-radius:12px;padding:11px;min-height:93px}.tile span{font-size:9px;color:var(--muted);text-transform:uppercase}.tile b{display:block;margin:5px 0;font-size:13px}.tile small{color:var(--muted);font-size:10px;line-height:1.35}
+.reason{padding:7px 0;border-top:1px solid rgba(42,54,81,.5);font-size:11px;color:var(--muted)}.reason b{color:white}.footer{text-align:center;color:var(--muted);font-size:10px;margin-top:20px}
+@media(max-width:480px){.players{grid-template-columns:1fr}h1{font-size:27px}}
+</style>
+</head>
+<body><div class="wrap">
+<header><div><div class="eyebrow">FPL AI MANAGER</div><h1>Current 2026/27 demo.</h1><p>Mobile interaction prototype using a verified current Premier League Scout player set.</p></div><div class="pill">21 AUG 2026</div></header>
+<div class="notice"><b>Data snapshot:</b> player names/prices are based on official Premier League 2026/27 FPL material current to 20–21 August 2026. Demo scores and recommendations remain illustrative; the live app will fetch current data automatically.</div>
+<div class="card tabs"><button id="seedTab" class="tab active">New season</button><button id="manageTab" class="tab">Existing team</button></div>
+<section id="seedPanel" class="card"><div class="eyebrow">SEED MODE</div><h2>Build my opening squad</h2>
+<label>Risk preference</label><div class="segmented"><button data-risk="safe">Safe</button><button class="on" data-risk="balanced">Balanced</button><button data-risk="aggressive">Aggressive</button></div>
+<label>Planning horizon</label><select><option>4 Gameweeks</option><option selected>6 Gameweeks</option><option>8 Gameweeks</option></select>
+<button id="seedBtn" class="primary">Show current squad options</button><div id="seedResults"></div></section>
+<section id="managePanel" class="card hidden"><div class="eyebrow">MANAGE MODE</div><h2>Analyse my current team</h2><label>FPL Entry ID</label><input value="1234567"><label>Season target rank</label><input id="target" value="10000"><button id="manageBtn" class="primary">Analyse my team</button><div id="manageResults"></div></section>
+
+<div class="card">
+  <div class="eyebrow">LOCAL LLM PROXY</div>
+  <h2>Secure OpenAI test</h2>
+  <p>The API key stays in the native Android app. This page receives only a short-lived per-launch proxy token.</p>
+  <label>Prompt</label>
+  <input id="proxyPrompt" value="Give me one concise FPL strategy principle.">
+  <button id="proxyTest" class="primary">Test OpenAI through local proxy</button>
+  <div id="proxyResult" class="notice hidden"></div>
+</div>
+
+<div class="footer">Standalone UX demo · no live FPL/OpenAI calls in this file</div></div>
+<script>
+const $=id=>document.getElementById(id);let risk="balanced";
+const current=['Kinsky GK £4.5','Dubravka GK £4.0','Gabriel DEF £8.0','Mosquera DEF £5.5','Maguire DEF £5.0','Greaves DEF £4.0','Bobby Thomas DEF £4.0','Bruno Fernandes MID £12.0','Mbeumo MID £8.0','Christos Tzolis MID £6.5','Pascal Gross MID £5.5','Mamadou Sangare MID £5.5','Haaland FWD £15.5','Joao Pedro FWD £7.5','Kusi-Asare FWD £4.5'];
+const safe=[...current]; const balanced=[...current]; const aggressive=[...current];
+// Current variants use only players verified in current official FPL materials.
+safe[safe.findIndex(x=>x.startsWith("Christos Tzolis"))]="Saka MID £9.5";
+safe[safe.findIndex(x=>x.startsWith("Mbeumo"))]="Bentancur MID £5.5";
+safe[safe.findIndex(x=>x.startsWith("Maguire"))]="Matt Targett DEF £4.0";
+aggressive[aggressive.findIndex(x=>x.startsWith("Pascal Gross"))]="Palmer MID £9.5";
+aggressive[aggressive.findIndex(x=>x.startsWith("Joao Pedro"))]="Isak FWD £9.0";
+aggressive[aggressive.findIndex(x=>x.startsWith("Gabriel"))]="Matt Targett DEF £4.0";
+aggressive[aggressive.findIndex(x=>x.startsWith("Mbeumo"))]="Bentancur MID £5.5";
+function card(name,arr,rec,cost,cap){return `<div class="squad ${rec?'recommended':''}"><div class="squadtop"><div><b>${name}</b><div style="font-size:10px;color:var(--muted)">Current-player demo variant</div></div><span class="badge ${rec?'good':''}">${rec?'Recommended':'Option'}</span></div><div class="metrics"><div class="metric"><span>Illustrative cost</span><b>£${cost}</b></div><div class="metric"><span>Captain</span><b>${cap}</b></div><div class="metric"><span>Data date</span><b>20 Aug</b></div></div><div class="players">${arr.map(x=>{let m=x.match(/^(.*) (GK|DEF|MID|FWD) £([0-9.]+)$/);return `<div class="player"><span>${m?m[1]+' '+m[2]:x}</span><span>${m?'£'+m[3]:''}</span></div>`}).join('')}</div></div>`}
+document.querySelectorAll("[data-risk]").forEach(b=>b.onclick=()=>{risk=b.dataset.risk;document.querySelectorAll("[data-risk]").forEach(x=>x.classList.remove("on"));b.classList.add("on")});
+$("seedBtn").onclick=()=>{$("seedResults").innerHTML=`<div class="rec"><strong>${risk[0].toUpperCase()+risk.slice(1)} demo recommendation</strong><p>The important change here is that the player pool is current for 2026/27. The live engine—not this static file—will calculate real optimiser outputs.</p></div>`+card("Safe",safe,risk==="safe","99.5","Haaland")+card("Balanced / official Scout reference",balanced,risk==="balanced","100.0","Haaland")+card("Aggressive",aggressive,risk==="aggressive","99.0","Haaland")};
+$("seedTab").onclick=()=>{$("seedTab").classList.add("active");$("manageTab").classList.remove("active");$("seedPanel").classList.remove("hidden");$("managePanel").classList.add("hidden")};
+$("manageTab").onclick=()=>{$("manageTab").classList.add("active");$("seedTab").classList.remove("active");$("managePanel").classList.remove("hidden");$("seedPanel").classList.add("hidden")};
+$("manageBtn").onclick=()=>{let t=Number($("target").value||10000).toLocaleString();$("manageResults").innerHTML=`<div class="rec"><strong>HOLD — illustrative</strong><p>This screen demonstrates the decision explanation only. Live recommendations will come from the current FPL API and research engine.</p></div><div class="decisionGrid"><div class="tile"><span>Rank posture</span><b>PROTECT</b><small>Demo OR 7,240 · target ${t}</small></div><div class="tile"><span>Captain</span><b>Haaland</b><small>Current 2026/27 player</small></div><div class="tile"><span>Elite comparison</span><b>ELITE-LIKE</b><small>Example explanation surface</small></div><div class="tile"><span>Model status</span><b>DEMO</b><small>No live model calls in standalone file</small></div></div>`};
+
+$("proxyTest").onclick=async()=>{
+  const out=$("proxyResult");
+  out.classList.remove("hidden");
+  out.textContent="Calling local proxy…";
+  try{
+    const token=window.__FPL_PROXY_TOKEN||"";
+    if(!token) throw new Error("Proxy token not injected. Start the native proxy first.");
+    const r=await fetch("http://127.0.0.1:8787/api/analyse",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "X-FPL-Proxy-Token":token
+      },
+      body:JSON.stringify({model:"gpt-5.6",prompt:$("proxyPrompt").value})
+    });
+    const data=await r.json();
+    if(!r.ok || data.error) throw new Error(data.error||`HTTP ${r.status}`);
+    let text="";
+    if(typeof data.output_text==="string") text=data.output_text;
+    if(!text && Array.isArray(data.output)){
+      for(const item of data.output){
+        if(Array.isArray(item.content)){
+          for(const c of item.content){
+            if(typeof c.text==="string") text+=c.text;
+          }
+        }
+      }
+    }
+    out.textContent=text||"OpenAI responded successfully.";
+  }catch(e){out.textContent="Proxy error: "+e.message}
+};
+
+</script></body></html>
