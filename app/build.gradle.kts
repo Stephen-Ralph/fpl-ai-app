@@ -6,6 +6,10 @@ android {
     namespace = "com.example.fplaiproxy"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.fplaiproxy"
         minSdk = 26
